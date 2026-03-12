@@ -34,7 +34,7 @@ public class PermissionController {
     public Permission update(@PathVariable String id, @RequestBody Permission newPermission) {
         return this.thePermissionService.update(id, newPermission);
     }
-
+// comentario de prueba
     @DeleteMapping("{id}")
     public void delete(@PathVariable String id) {
         this.thePermissionService.delete(id);
