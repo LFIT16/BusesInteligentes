@@ -79,13 +79,13 @@ public class UserController {
             @PathVariable String userId,
             @PathVariable String sessionId) {
 
-        boolean response = this.theUserService.addProfile(userId, sessionId);
+        boolean response = this.theUserService.addSession(userId, sessionId);
         if (response) {
             return ResponseEntity.ok(Map.of("message", "Success"));
         } else {
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("message", "User or Profile not found"));
+                    .body(Map.of("message", "User or Session not found"));
         }
     }
     @DeleteMapping("{userId}/session/{sessionId}")
@@ -99,7 +99,7 @@ public class UserController {
         } else {
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("message", "User or Profile not found"));
+                    .body(Map.of("message", "User or Session not found"));
         }
     }
 
