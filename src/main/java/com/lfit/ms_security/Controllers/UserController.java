@@ -2,15 +2,14 @@ package com.lfit.ms_security.Controllers;
 
 import com.lfit.ms_security.Models.User;
 import com.lfit.ms_security.Services.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 @CrossOrigin
 @RestController
@@ -31,12 +30,12 @@ public class UserController {
     }
 
     @PostMapping
-    public User create(@RequestBody User newUser) {
+    public User create(@Valid @RequestBody User newUser) {
         return this.theUserService.create(newUser);
     }
 
     @PutMapping("{id}")
-    public User update(@PathVariable String id, @RequestBody User newUser) {
+    public User update(@PathVariable String id, @Valid @RequestBody User newUser) {
         return this.theUserService.update(id, newUser);
     }
 
