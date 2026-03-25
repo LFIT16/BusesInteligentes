@@ -34,12 +34,13 @@ public class ValidatorsService {
         boolean success=false;
         User theUser=this.getUser(request);
         if(theUser!=null){
+            List<UserRole> roles=this.theUserRoleRepository.getRolesByUser(theUser.getId());
             System.out.println("Antes URL "+url+" metodo "+method);
             url = url.replaceAll("[0-9a-fA-F]{24}|\\d+", "?");
             System.out.println("URL "+url+" metodo "+method);
             Permission thePermission=this.thePermissionRepository.getPermission(url,method);
 
-            List<UserRole> roles=this.theUserRoleRepository.getRolesByUser(theUser.getId());
+
             int i=0;
             while(i<roles.size() && success==false){
                 UserRole actual=roles.get(i);
@@ -59,6 +60,12 @@ public class ValidatorsService {
         }
         return success;
     }
+
+    /***
+     * Analiza el token y descifra los datos para rearmar el usuario
+     * @param request que contiene el token
+     * @return el usuario de base datos que tiene el id presente en el token
+     */
     public User getUser(final HttpServletRequest request) {
         User theUser=null;
         String authorizationHeader = request.getHeader("Authorization");

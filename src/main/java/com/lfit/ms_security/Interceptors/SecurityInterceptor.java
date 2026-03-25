@@ -12,13 +12,24 @@ import org.springframework.web.servlet.ModelAndView;
 public class SecurityInterceptor implements HandlerInterceptor {
     @Autowired
     private ValidatorsService validatorService;
+
     @Override
     public boolean preHandle(HttpServletRequest request,
                              HttpServletResponse response,
                              Object handler)
             throws Exception {
-        boolean success=this.validatorService.validationRolePermission(request,request.getRequestURI(),request.getMethod());
-        return success;
+        boolean success=this.validatorService.validationRolePermission(
+                request,
+                request.getRequestURI(),
+                request.getMethod()
+        );
+
+        if (!success) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); //401
+            return false;
+        }
+
+        return true;
     }
 
     @Override
