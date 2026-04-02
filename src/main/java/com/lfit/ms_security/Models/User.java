@@ -29,6 +29,8 @@ public class User {
     )
     private String password;
 
+    private String githubUsername;
+
     public User() {}
 
     public User(String name, String email, String password) {
