@@ -3,6 +3,8 @@ package com.lfit.ms_security.Controllers;
 import com.lfit.ms_security.Models.Role;
 import com.lfit.ms_security.Services.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -36,7 +38,13 @@ public class RoleController {
     }
 
     @DeleteMapping("{id}")
-    public void delete(@PathVariable String id) {
-        this.theRoleService.delete(id);
+    public ResponseEntity<?> delete(@PathVariable String id) {
+        boolean deleted = this.theRoleService.delete(id);
+        if (deleted) {
+            return ResponseEntity.ok("Rol eliminado correctamente.");
+        } else {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("No se puede eliminar el rol porque tiene usuarios asignados.");
+        }
     }
 }
