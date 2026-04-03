@@ -12,7 +12,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/auth/github")
 @CrossOrigin(origins = "http://localhost:4200")
-public class GitHubAuthControlle {
+public class GitHubAuthController {
     @Autowired
     private GitHubAuthService theGithubAuthService;
 
