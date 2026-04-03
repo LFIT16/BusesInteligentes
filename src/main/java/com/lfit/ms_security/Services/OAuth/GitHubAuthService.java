@@ -40,14 +40,14 @@ public class GitHubAuthService {
     @Autowired
     private JwtService theJwtService;
 
-    // ✅ Generar URL de GitHub
+    // Generar URL de GitHub
     public String getGithubUrl() {
         return "https://github.com/login/oauth/authorize"
                 + "?client_id=" + clientId
                 + "&scope=user:email read:user";
     }
 
-    // ✅ Intercambiar code por access token
+    // Intercambiar code por access token
     public String getGithubAccessToken(String code) {
         RestTemplate rest = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -68,7 +68,7 @@ public class GitHubAuthService {
         return (String) response.getBody().get("access_token");
     }
 
-    // ✅ Obtener datos del usuario de GitHub
+    // Obtener datos del usuario de GitHub
     public Map getGithubUser(String accessToken) {
         RestTemplate rest = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -84,39 +84,71 @@ public class GitHubAuthService {
         return response.getBody();
     }
 
-    // ✅ Procesar usuario — crear o vincular
-    public String processGithubUser(Map githubUser) {
-        System.out.println("GitHub user data: " + githubUser);
+    public String getGithubEmail(String accessToken) {
+        RestTemplate rest = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + accessToken);
+
+        ResponseEntity<List> response = rest.exchange(
+                "https://api.github.com/user/emails",
+                HttpMethod.GET,
+                new HttpEntity<>(headers),
+                List.class
+        );
+
+        List<Map> emails = response.getBody();
+        for (Map emailData : emails) {
+            if ((Boolean) emailData.get("primary")) {
+                return (String) emailData.get("email");
+            }
+        }
+        return null;
+    }
+
+    // Procesar usuario
+    public String processGithubUser(Map githubUser, String accessToken) {
         String email = (String) githubUser.get("email");
         String name = (String) githubUser.get("name");
         String photo = (String) githubUser.get("avatar_url");
         String githubUsername = (String) githubUser.get("login");
 
-        System.out.println("email: " + email);        // ✅
-        System.out.println("name: " + name);          // ✅
-        System.out.println("githubUsername: " + githubUsername);
+        if (name == null || name.isEmpty()) {
+            name = githubUsername;
+        }
 
+        // Buscar primero por githubUsername — ya se registró antes
+        User existingUser = theUserRepository.findByGithubUsername(githubUsername).orElse(null);
+        if (existingUser != null) {
+            // Ya existe — generar token directamente sin pedir email
+            return theJwtService.generateToken(existingUser);
+        }
+
+        // Si email directo es null y no existe por githubUsername → primera vez
+        if (email == null || email.isEmpty()) {
+            return "NEEDS_EMAIL:" + githubUsername + "|" + photo + "|" + name;
+        }
+
+        return createOrLinkUser(email, name, photo, githubUsername);
+    }
+
+    // creación del usuario
+    public String createOrLinkUser(String email, String name, String photo, String githubUsername) {
         User user = theUserRepository.getUserByEmail(email);
 
         if (user == null) {
-            // ✅ Primera vez — crear User
             user = new User();
             user.setEmail(email);
             user.setName(name);
             user.setGithubUsername(githubUsername);
-            // ✅ Password aleatorio para evitar inconsistencias
             String randomPassword = UUID.randomUUID().toString();
             user.setPassword(theEncryptionService.convertSHA256(randomPassword));
             theUserRepository.save(user);
 
-            // ✅ Crear Profile asociado
             Profile profile = new Profile();
             profile.setPhoto(photo);
             profile.setUser(user);
             theProfileRepository.save(profile);
-
         } else {
-            // ✅ Ya existe — vincular GitHub
             user.setGithubUsername(githubUsername);
             theUserRepository.save(user);
         }
