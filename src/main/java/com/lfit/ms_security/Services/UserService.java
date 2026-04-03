@@ -94,6 +94,13 @@ public class UserService {
             return false;
         }
     }
+    public boolean unlinkGithub(String userId) {
+        User user = theUserRepository.findById(userId).orElse(null);
+        if (user == null) return false;
+        user.setGithubUsername(null);
+        theUserRepository.save(user);
+        return true;
+    }
 
     /**
      * Permite asociar un usuario y un perfil. Para que funcione ambos

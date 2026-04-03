@@ -25,13 +25,41 @@ public class GitHubAuthControlle {
     }
     @GetMapping("/callback")
     public ResponseEntity<?> callback(@RequestParam String code) {
-        String accessToken = theGithubAuthService.getGithubAccessToken(code);
-        Map githubUser = theGithubAuthService.getGithubUser(accessToken);
-        String jwt = theGithubAuthService.processGithubUser(githubUser);
+        try {
+            String accessToken = theGithubAuthService.getGithubAccessToken(code);
+            Map githubUser = theGithubAuthService.getGithubUser(accessToken);
+            String result = theGithubAuthService.processGithubUser(githubUser, accessToken);
 
-        return ResponseEntity
-                .status(HttpStatus.FOUND)
-                .header("Location", frontendUrl + "/auth/github/success?token=" + jwt)
-                .build();
+            if (result.startsWith("NEEDS_EMAIL:")) {
+                String data = result.replace("NEEDS_EMAIL:", "");
+                String redirectUrl = frontendUrl + "/#/auth/github/email-required?data=" + data;
+                System.out.println("Redirigiendo a: " + redirectUrl);
+                return ResponseEntity
+                        .status(HttpStatus.FOUND)
+                        .header("Location", redirectUrl)
+                        .build();
+            }
+
+            return ResponseEntity
+                    .status(HttpStatus.FOUND)
+                    .header("Location", frontendUrl + "/#/auth/github/success?token=" + result)
+                    .build();
+        } catch (Exception e) {
+            System.err.println("Error en callback: " + e.getMessage());
+            return ResponseEntity
+                    .status(HttpStatus.FOUND)
+                    .header("Location", frontendUrl + "/#/login")
+                    .build();
+        }
+    }
+    @PostMapping("/complete-registration")
+    public ResponseEntity<?> completeRegistration(
+            @RequestParam String githubUsername,
+            @RequestParam String photo,
+            @RequestParam String name,
+            @RequestParam String email
+    ) {
+        String jwt = theGithubAuthService.createOrLinkUser(email, name, photo, githubUsername);
+        return ResponseEntity.ok(Map.of("token", jwt));
     }
 }
