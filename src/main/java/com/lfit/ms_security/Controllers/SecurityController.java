@@ -21,18 +21,15 @@ public class SecurityController {
     public HashMap<String,Object> login(@RequestBody User theNewUser,
                                         final HttpServletResponse response)throws IOException {
         HashMap<String, Object> theResponse = new HashMap<>();
-        String token = "";
-        token = this.theSecurityService.login(theNewUser);
+        String token = this.theSecurityService.login(theNewUser);
+
         if (token != null) {
+            User user = this.theSecurityService.getUserByEmail(theNewUser.getEmail());
             theResponse.put("token", token);
+            theResponse.put("user", user);
         } else {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-            return theResponse;
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Email o contraseña incorrectos");
         }
         return theResponse;
     }
 }
-
-
-
-
