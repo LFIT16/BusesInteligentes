@@ -17,10 +17,10 @@ public class PasswordResetController {
     @PostMapping("/forgot")
     public ResponseEntity<?> forgotPassword(
             @RequestParam String email,
-            @RequestParam String recaptchaToken
+            @RequestParam String recaptchaTokenV3
     ) {
         // Verificar reCAPTCHA
-        if (!thePasswordResetService.verifyRecaptcha(recaptchaToken)) {
+        if (!thePasswordResetService.verifyRecaptchaV3(recaptchaTokenV3)) {
             return ResponseEntity.badRequest().body("reCAPTCHA inválido.");
         }
 
