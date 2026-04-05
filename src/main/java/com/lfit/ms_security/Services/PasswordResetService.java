@@ -30,8 +30,8 @@ public class PasswordResetService {
     @Autowired
     private EncryptionService theEncryptionService;
 
-    @Value("${recaptcha.secret}")
-    private String recaptchaSecret;
+    @Value("${recaptcha.secret.v3}")
+    private String recaptchaSecretV3;
 
     @Value("${recaptcha.verify-url}")
     private String recaptchaVerifyUrl;
@@ -42,14 +42,18 @@ public class PasswordResetService {
     @Value("${spring.mail.username}")
     private String mailFrom;
 
-    // Verificar reCAPTCHA
-    public boolean verifyRecaptcha(String token) {
+    // Verificar reCAPTCHA v3
+    public boolean verifyRecaptchaV3(String token) {
         RestTemplate rest = new RestTemplate();
         String url = recaptchaVerifyUrl
-                + "?secret=" + recaptchaSecret
+                + "?secret=" + recaptchaSecretV3
                 + "&response=" + token;
         Map response = rest.postForObject(url, null, Map.class);
-        return response != null && (Boolean) response.get("success");
+        if (response == null) return false;
+        boolean success = (Boolean) response.get("success");
+        // v3 retorna una puntuación — 0.5 o más es humano
+        Double score = (Double) response.get("score");
+        return success && score != null && score >= 0.5f;
     }
 
     // Solicitar recuperación de contraseña
