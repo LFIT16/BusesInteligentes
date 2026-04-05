@@ -16,7 +16,7 @@ public class GitHubAuthController {
     @Autowired
     private GitHubAuthService theGithubAuthService;
 
-    @Value("${github.frontend-url}")
+    @Value("${app.frontend-url}")
     private String frontendUrl;
 
     @GetMapping("/url")

@@ -17,7 +17,7 @@ public class MicrosoftAuthController {
     @Autowired
     private MicrosoftAuthService theMicrosoftAuthService;
 
-    @Value("${microsoft.frontend-url}")
+    @Value("${app.frontend-url}")
     private String frontendUrl;
 
     @GetMapping("/url")
