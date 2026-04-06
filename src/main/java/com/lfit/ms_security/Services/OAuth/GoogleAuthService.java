@@ -92,13 +92,10 @@ public class GoogleAuthService {
     public String processGoogleUser(Map googleUser) {
         String email = (String) googleUser.get("email");
         String name = (String) googleUser.get("name");
-        String photo = (String) googleUser.get("picture");
+        String photoUrl = (String) googleUser.get("picture");
+        String photo = getGooglePhoto(photoUrl);
         String googleId = (String) googleUser.get("sub");
 
-        User existingUser = theUserRepository.findByGoogleId(googleId).orElse(null);
-        if (existingUser != null) {
-            return theJwtService.generateToken(existingUser);
-        }
 
         return createOrLinkUser(email, name, photo, googleId);
     }
@@ -123,8 +120,47 @@ public class GoogleAuthService {
         } else {
             user.setGoogleId(googleId);
             theUserRepository.save(user);
+
+            Profile profile = theProfileRepository.findByUser(user).orElse(null);
+
+            if (profile == null) {
+                profile = new Profile();
+                profile.setUser(user);
+            }
+
+            if (photo != null && !photo.isEmpty()) {
+                profile.setPhoto(photo);
+            }
+
+            theProfileRepository.save(profile);
         }
 
         return theJwtService.generateToken(user);
+    }
+
+    public String getGooglePhoto(String photoUrl) {
+        try {
+            if (photoUrl == null || photoUrl.isEmpty()) {
+                return null;
+            }
+
+            RestTemplate rest = new RestTemplate();
+
+            ResponseEntity<byte[]> response = rest.exchange(
+                    photoUrl,
+                    HttpMethod.GET,
+                    null,
+                    byte[].class
+            );
+
+            if (response.getBody() != null) {
+                String base64 = java.util.Base64.getEncoder().encodeToString(response.getBody());
+                return "data:image/jpeg;base64," + base64;
+            }
+        } catch (Exception e) {
+            System.out.println("No fue posible obtener la foto de Google");
+        }
+
+        return null;
     }
 }
