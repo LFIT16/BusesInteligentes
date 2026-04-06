@@ -94,21 +94,20 @@ public class GoogleAuthService {
         String name = (String) googleUser.get("name");
         String photoUrl = (String) googleUser.get("picture");
         String photo = getGooglePhoto(photoUrl);
-        String googleId = (String) googleUser.get("sub");
 
 
-        return createOrLinkUser(email, name, photo, googleId);
+
+        return createOrLinkUser(email, name, photo);
     }
 
     // Crear o vincular usuario
-    public String createOrLinkUser(String email, String name, String photo, String googleId) {
+    public String createOrLinkUser(String email, String name, String photo) {
         User user = theUserRepository.getUserByEmail(email);
 
         if (user == null) {
             user = new User();
             user.setEmail(email);
             user.setName(name);
-            user.setGoogleId(googleId);
             String randomPassword = UUID.randomUUID().toString();
             user.setPassword(theEncryptionService.convertSHA256(randomPassword));
             theUserRepository.save(user);
@@ -118,8 +117,6 @@ public class GoogleAuthService {
             profile.setUser(user);
             theProfileRepository.save(profile);
         } else {
-            user.setGoogleId(googleId);
-            theUserRepository.save(user);
 
             Profile profile = theProfileRepository.findByUser(user).orElse(null);
 
