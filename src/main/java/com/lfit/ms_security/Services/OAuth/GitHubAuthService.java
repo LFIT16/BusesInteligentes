@@ -25,7 +25,7 @@ public class GitHubAuthService {
     @Value("${github.client-secret}")
     private String clientSecret;
 
-    @Value("${github.frontend-url}")
+    @Value("${app.frontend-url}")
     private String frontendUrl;
 
     @Autowired

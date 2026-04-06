@@ -15,15 +15,17 @@ public class SecurityService {
     private JwtService theJwtService;
 
     public String login(User theNewUser){
-        String token=null;
-        User theActualUser=this.theUserRepository.getUserByEmail(theNewUser.getEmail());
-        if(theActualUser!=null &&
-                theActualUser.getPassword().equals(theEncryptionService.convertSHA256(theNewUser.getPassword()))){
-            token=theJwtService.generateToken(theActualUser);
-            return token;
-        }else{
-            return  token;
+        User theActualUser = this.theUserRepository.getUserByEmail(theNewUser.getEmail());
+        if(theActualUser != null &&
+                theActualUser.getPassword().equals(
+                        theEncryptionService.convertSHA256(theNewUser.getPassword()))) {
+            return theJwtService.generateToken(theActualUser);
         }
+        return null;
+    }
+
+    public User getUserByEmail(String email){
+        return this.theUserRepository.getUserByEmail(email);
     }
     /*
     public boolean permissionsValidation(final HttpServletRequest request,

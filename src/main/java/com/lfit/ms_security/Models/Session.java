@@ -15,6 +15,7 @@ public class Session {
     private String token;
     private Date expiration;
     private String code2FA;
+    private String type;
 
     @DBRef
     private User user;
