@@ -30,6 +30,12 @@ public class User {
 
     private String githubUsername;
 
+    private String googleId;
+
+    private String microsoftId; 
+
+
+
     public User() {}
 
     public User(String name, String email, String password) {
