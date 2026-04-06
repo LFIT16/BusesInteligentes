@@ -30,10 +30,6 @@ public class User {
 
     private String githubUsername;
 
-    private String googleId;
-
-    private String microsoftId; 
-
 
 
     public User() {}
