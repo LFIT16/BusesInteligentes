@@ -16,6 +16,8 @@ public class Session {
     private Date expiration;
     private String code2FA;
     private String type;
+    private Integer attempts;
+    private Boolean active;
 
     @DBRef
     private User user;
@@ -28,5 +30,7 @@ public class Session {
         this.token = token;
         this.expiration = expiration;
         this.code2FA = code2FA;
+        this.attempts = 0;
+        this.active = true;
     }
 }
