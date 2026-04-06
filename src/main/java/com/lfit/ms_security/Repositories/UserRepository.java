@@ -19,4 +19,8 @@ public interface UserRepository  extends MongoRepository<User, String> {
     List<User> searchByNameOrEmail(String query);
 
     Optional<User> findByGithubUsername(String githubUsername);
+
+    Optional<User> findByGoogleId(String googleId);
+
+    Optional<User> findByMicrosoftId(String microsoftId);
 }
