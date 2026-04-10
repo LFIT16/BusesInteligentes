@@ -42,7 +42,7 @@ public class MicrosoftAuthService {
     @Autowired
     private JwtService theJwtService;
 
-    private final String redirectUri = "http://localhost:8080/auth/microsoft/callback";
+    private final String redirectUri = "http://localhost:8080/api/public/auth/microsoft/callback";
 
     // Generar URL de Microsoft
     public String getMicrosoftUrl() {

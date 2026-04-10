@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/auth/microsoft")
+@RequestMapping("/api/public/auth/microsoft")
 @CrossOrigin(origins = "http://localhost:4200")
 public class MicrosoftAuthController {
 
