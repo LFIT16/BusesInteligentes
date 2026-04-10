@@ -1,5 +1,6 @@
 package com.lfit.ms_security.Controllers;
 
+import com.lfit.ms_security.Models.DTOs.RegisterRequest;
 import com.lfit.ms_security.Models.User;
 import com.lfit.ms_security.Services.UserService;
 import jakarta.validation.Valid;
@@ -44,11 +45,15 @@ public class UserController {
         this.theUserService.delete(id);
     }
 
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
+        return this.theUserService.register(request);
+    }
+
     @PostMapping("{userId}/profile/{profileId}")
     public ResponseEntity<Map<String, String>> addUserProfile(
             @PathVariable String userId,
             @PathVariable String profileId) {
-
         boolean response = this.theUserService.addProfile(userId, profileId);
         if (response) {
             return ResponseEntity.ok(Map.of("message", "Success"));
@@ -58,11 +63,11 @@ public class UserController {
                     .body(Map.of("message", "User or Profile not found"));
         }
     }
+
     @DeleteMapping("{userId}/profile/{profileId}")
     public ResponseEntity<Map<String, String>> deleteUserProfile(
             @PathVariable String userId,
             @PathVariable String profileId) {
-
         boolean response = this.theUserService.removeProfile(userId, profileId);
         if (response) {
             return ResponseEntity.ok(Map.of("message", "Success"));
@@ -72,6 +77,7 @@ public class UserController {
                     .body(Map.of("message", "User or Profile not found"));
         }
     }
+
     @PutMapping("{id}/unlink-github")
     public ResponseEntity<?> unlinkGithub(@PathVariable String id) {
         boolean unlinked = theUserService.unlinkGithub(id);
@@ -85,7 +91,6 @@ public class UserController {
     public ResponseEntity<Map<String, String>> addUserSession(
             @PathVariable String userId,
             @PathVariable String sessionId) {
-
         boolean response = this.theUserService.addSession(userId, sessionId);
         if (response) {
             return ResponseEntity.ok(Map.of("message", "Success"));
@@ -95,11 +100,11 @@ public class UserController {
                     .body(Map.of("message", "User or Session not found"));
         }
     }
+
     @DeleteMapping("{userId}/session/{sessionId}")
     public ResponseEntity<Map<String, String>> deleteUserSession(
             @PathVariable String userId,
             @PathVariable String sessionId) {
-
         boolean response = this.theUserService.removeSession(userId, sessionId);
         if (response) {
             return ResponseEntity.ok(Map.of("message", "Success"));
@@ -109,5 +114,4 @@ public class UserController {
                     .body(Map.of("message", "User or Session not found"));
         }
     }
-
 }

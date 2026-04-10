@@ -1,12 +1,12 @@
 package com.lfit.ms_security.Models;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.DBRef;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
 @Document
@@ -17,8 +17,11 @@ public class User {
     @NotBlank(message = "El nombre es obligatorio")
     private String name;
 
+    @NotBlank(message = "El apellido es obligatorio")
+    private String lastName;
+
     @Email(message = "Debe ser un email válido")
-    @NotBlank
+    @NotBlank(message = "El email es obligatorio")
     private String email;
 
     @NotBlank( message = "La contraseña es obligatoria")
@@ -32,10 +35,13 @@ public class User {
 
 
 
+    private boolean emailConfirmed = false;
+
     public User() {}
 
-    public User(String name, String email, String password) {
+    public User(String name, String lastName, String email, String password) {
         this.name = name;
+        this.lastName = lastName;
         this.email = email;
         this.password = password;
     }
