@@ -72,15 +72,6 @@ public class UserController {
                     .body(Map.of("message", "User or Profile not found"));
         }
     }
-    @PutMapping("{id}/unlink-github")
-    public ResponseEntity<?> unlinkGithub(@PathVariable String id) {
-        boolean unlinked = theUserService.unlinkGithub(id);
-        if (unlinked) {
-            return ResponseEntity.ok("Cuenta GitHub desvinculada.");
-        }
-        return ResponseEntity.notFound().build();
-    }
-
     @PostMapping("{userId}/session/{sessionId}")
     public ResponseEntity<Map<String, String>> addUserSession(
             @PathVariable String userId,
