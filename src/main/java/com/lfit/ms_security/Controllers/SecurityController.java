@@ -11,25 +11,53 @@ import java.util.HashMap;
 
 @CrossOrigin
 @RestController
-@RequestMapping("/security")
+@RequestMapping("/api/public/security")
 public class SecurityController {
 
     @Autowired
     private SecurityService theSecurityService;
 
     @PostMapping("login")
-    public HashMap<String,Object> login(@RequestBody User theNewUser,
-                                        final HttpServletResponse response)throws IOException {
-        HashMap<String, Object> theResponse = new HashMap<>();
-        String token = this.theSecurityService.login(theNewUser);
+    public HashMap<String, Object> login(@RequestBody User theNewUser,
+                                         final HttpServletResponse response) throws IOException {
+        HashMap<String, Object> theResponse = this.theSecurityService.startTwoFactorLogin(theNewUser);
 
-        if (token != null) {
-            User user = this.theSecurityService.getUserByEmail(theNewUser.getEmail());
-            theResponse.put("token", token);
-            theResponse.put("user", user);
-        } else {
+        if (theResponse == null) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Email o contraseña incorrectos");
+            return null;
         }
+
         return theResponse;
+    }
+    @PostMapping("2fa/verify")
+    public HashMap<String, Object> verify2FA(@RequestBody HashMap<String, String> body,
+                                             final HttpServletResponse response) throws IOException {
+        HashMap<String, Object> result = this.theSecurityService.verifyTwoFactorCode(
+                body.get("challengeId"),
+                body.get("code")
+        );
+
+        Boolean success = (Boolean) result.get("success");
+        if (Boolean.FALSE.equals(success)) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        }
+
+        return result;
+    }
+    @PostMapping("2fa/resend")
+    public HashMap<String, Object> resend2FA(@RequestBody HashMap<String, String> body,
+                                             final HttpServletResponse response) throws IOException {
+        HashMap<String, Object> result = this.theSecurityService.resendTwoFactorCode(body.get("challengeId"));
+
+        Boolean success = (Boolean) result.get("success");
+        if (Boolean.FALSE.equals(success)) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        }
+
+        return result;
+    }
+    @PostMapping("2fa/cancel")
+    public void cancel2FA(@RequestBody HashMap<String, String> body) {
+        this.theSecurityService.cancelTwoFactorSession(body.get("challengeId"));
     }
 }

@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/auth/password")
+@RequestMapping("/api/public/auth/password")
 @CrossOrigin(origins = "http://localhost:4200")
 public class PasswordResetController {
 
