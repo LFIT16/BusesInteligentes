@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.lfit.ms_security.Models.DTOs.RegisterRequest;
 import com.lfit.ms_security.Models.User;
 import com.lfit.ms_security.Services.UserService;
 
@@ -55,10 +54,6 @@ public class UserController {
         this.theUserService.delete(id);
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
-        return this.theUserService.register(request);
-    }
 
     @PostMapping("{userId}/profile/{profileId}")
     public ResponseEntity<Map<String, String>> addUserProfile(

@@ -1,14 +1,13 @@
 package com.lfit.ms_security.Services;
 
 import java.util.List;
-import java.util.Map;
+
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+
 import org.springframework.stereotype.Service;
 
-import com.lfit.ms_security.Models.DTOs.RegisterRequest;
+
 import com.lfit.ms_security.Models.Profile;
 import com.lfit.ms_security.Models.Session;
 import com.lfit.ms_security.Models.User;
@@ -30,9 +29,6 @@ public class UserService {
 
     @Autowired
     private EncryptionService theEncryptionService;
-
-    @Autowired
-    private EmailService theEmailService;
 
     public List<User> find() {
         return this.theUserRepository.findAll();
@@ -118,38 +114,4 @@ public class UserService {
         return false;
     }
 
-    public ResponseEntity<?> register(RegisterRequest request) {
-        if (!request.getPassword().equals(request.getConfirmPassword())) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("message", "Las contraseñas no coinciden"));
-        }
-
-        User existing = theUserRepository.getUserByEmail(request.getEmail());
-        if (existing != null) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(Map.of("message", "El email ya está registrado"));
-        }
-
-        User newUser = new User();
-        newUser.setName(request.getName());
-        newUser.setLastName(request.getLastName());
-        newUser.setEmail(request.getEmail());
-        newUser.setPassword(theEncryptionService.encodeBCrypt(request.getPassword()));
-        newUser.setEmailConfirmed(false);
-
-        User savedUser = theUserRepository.save(newUser);
-
-        theEmailService.sendConfirmationEmail(savedUser.getEmail(), savedUser.getName());
-
-        // Crear respuesta sin contraseña
-        Map<String, Object> userResponse = Map.of(
-                "id", savedUser.getId(),
-                "name", savedUser.getName(),
-                "lastName", savedUser.getLastName(),
-                "email", savedUser.getEmail(),
-                "emailConfirmed", savedUser.isEmailConfirmed()
-        );
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(userResponse);
-    }
 }

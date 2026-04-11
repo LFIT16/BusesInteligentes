@@ -1,15 +1,16 @@
 package com.lfit.ms_security.Services;
-import com.lfit.ms_security.Models.Session;
-import com.lfit.ms_security.Models.User;
-import com.lfit.ms_security.Repositories.SessionRepository;
-import com.lfit.ms_security.Repositories.UserRepository;
+import java.util.Date;
+import java.util.HashMap;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.HashMap;
+import com.lfit.ms_security.Models.Session;
+import com.lfit.ms_security.Models.User;
+import com.lfit.ms_security.Repositories.SessionRepository;
+import com.lfit.ms_security.Repositories.UserRepository;
 
 
 @Service
@@ -207,9 +208,63 @@ public class SecurityService {
             theSessionRepository.save(session);
         }
     }
+    public String register(User theNewUser) {
+        if (theNewUser == null) {
+            return "Datos inválidos";
+        }
 
+        if (theNewUser.getName() == null || theNewUser.getName().trim().isEmpty()) {
+            return "El nombre es obligatorio";
+        }
+
+
+
+        if (theNewUser.getEmail() == null || theNewUser.getEmail().trim().isEmpty()) {
+            return "El email es obligatorio";
+        }
+
+        if (theNewUser.getPassword() == null || theNewUser.getPassword().trim().isEmpty()) {
+            return "La contraseña es obligatoria";
+        }
+
+        if (theNewUser.getConfirmPassword() == null || theNewUser.getConfirmPassword().trim().isEmpty()) {
+            return "La confirmación de contraseña es obligatoria";
+        }
+
+        if (!theNewUser.getPassword().equals(theNewUser.getConfirmPassword())) {
+            return "Las contraseñas no coinciden";
+        }
+
+        String email = theNewUser.getEmail().trim().toLowerCase();
+        User existingUser = this.theUserRepository.getUserByEmail(email);
+
+        if (existingUser != null) {
+            return "El email ya está registrado";
+        }
+
+        theNewUser.setEmail(email);
+        theNewUser.setName(theNewUser.getName().trim());
+
+
+        String encryptedPassword = theEncryptionService.convertSHA256(theNewUser.getPassword());
+        theNewUser.setPassword(encryptedPassword);
+
+        this.theUserRepository.save(theNewUser);
+
+        sendRegisterConfirmationEmail(theNewUser.getEmail(), theNewUser.getName());
+
+        return "Usuario registrado correctamente";
+    }
+
+    private void sendRegisterConfirmationEmail(String email, String name) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(email);
+        message.setSubject("Confirmación de registro");
+        message.setText(
+                "Hola " + name + ",\n\n" +
+                        "Tu cuenta fue creada correctamente.\n\n" +
+                        "Ya puedes iniciar sesión en la plataforma."
+        );
+        mailSender.send(message);
+    }
 }
-
-
-
-
