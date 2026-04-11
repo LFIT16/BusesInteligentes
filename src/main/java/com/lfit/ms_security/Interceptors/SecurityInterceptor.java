@@ -16,21 +16,28 @@ public class SecurityInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request,
                              HttpServletResponse response,
-                             Object handler)
-            throws Exception {
+                             Object handler) throws Exception {
+
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             response.setStatus(HttpServletResponse.SC_OK);
             return true;
         }
 
-        boolean success=this.validatorService.validationRolePermission(
+        var theUser = this.validatorService.getUser(request);
+
+        if (theUser == null) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
+            return false;
+        }
+
+        boolean success = this.validatorService.validationRolePermission(
                 request,
                 request.getRequestURI(),
                 request.getMethod()
         );
 
         if (!success) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); //401
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN); // 403
             return false;
         }
 

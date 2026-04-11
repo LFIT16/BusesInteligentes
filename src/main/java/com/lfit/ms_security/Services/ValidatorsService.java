@@ -28,36 +28,48 @@ public class ValidatorsService {
     private UserRoleRepository theUserRoleRepository;
 
     private static final String BEARER_PREFIX = "Bearer ";
-    public boolean  validationRolePermission(HttpServletRequest request,
-                                             String url,
-                                             String method){
-        boolean success=false;
-        User theUser=this.getUser(request);
-        if(theUser!=null){
-            List<UserRole> roles=this.theUserRoleRepository.getRolesByUser(theUser.getId());
-            System.out.println("Antes URL "+url+" metodo "+method);
+    public boolean validationRolePermission(HttpServletRequest request,
+                                            String url,
+                                            String method){
+        boolean success = false;
+        User theUser = this.getUser(request);
+
+        if(theUser != null){
+            List<UserRole> roles = this.theUserRoleRepository.getRolesByUser(theUser.getId());
+            System.out.println("Antes URL " + url + " metodo " + method);
+
             url = url.replaceAll("[0-9a-fA-F]{24}|\\d+", "?");
-            System.out.println("URL "+url+" metodo "+method);
-            Permission thePermission=this.thePermissionRepository.getPermission(url,method);
+            System.out.println("URL " + url + " metodo " + method);
 
+            Permission thePermission = this.thePermissionRepository.getPermission(url, method);
 
-            int i=0;
-            while(i<roles.size() && success==false){
-                UserRole actual=roles.get(i);
-                Role theRole=actual.getRole();
-                if(theRole!=null && thePermission!=null){
-                    System.out.println("Rol "+theRole.getId()+ " Permission "+thePermission.getId());
-                    RolePermission theRolePermission=this.theRolePermissionRepository.getRolePermission(theRole.getId(),thePermission.getId());
-                    if (theRolePermission!=null){
-                        success=true;
+            int i = 0;
+            while(i < roles.size() && success == false){
+                UserRole actual = roles.get(i);
+                Role theRole = actual.getRole();
+
+                if(theRole != null && thePermission != null){
+                    System.out.println("Rol " + theRole.getId() + " Permission " + thePermission.getId());
+
+                    RolePermission theRolePermission =
+                            this.theRolePermissionRepository.getRolePermission(theRole.getId(), thePermission.getId());
+
+                    System.out.println("RolePermission encontrado: " + (theRolePermission != null));
+
+                    if (theRolePermission != null){
+                        success = true;
                     }
-                }else{
-                    success=false;
+                } else {
+                    success = false;
                 }
-                i+=1;
-            }
 
+                i += 1;
+            }
+        } else {
+            System.out.println("Usuario nulo");
         }
+
+        System.out.println("Permiso final: " + success);
         return success;
     }
 
