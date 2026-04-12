@@ -1,26 +1,22 @@
 package com.lfit.ms_security.Services;
-<<<<<<< Updated upstream
 import java.util.Date;
 import java.util.HashMap;
 
-=======
-
 import com.lfit.ms_security.Models.Session;
 import com.lfit.ms_security.Models.User;
 import com.lfit.ms_security.Repositories.SessionRepository;
 import com.lfit.ms_security.Repositories.UserRepository;
->>>>>>> Stashed changes
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
-import com.lfit.ms_security.Models.Session;
-import com.lfit.ms_security.Models.User;
-import com.lfit.ms_security.Repositories.SessionRepository;
-import com.lfit.ms_security.Repositories.UserRepository;
 
 @Service
 public class SecurityService {
-
+    @Autowired
+    private JavaMailSender mailSender;
     @Autowired
     private UserRepository theUserRepository;
 
@@ -36,9 +32,9 @@ public class SecurityService {
     @Autowired
     private EmailService theEmailService;
 
-    public String login(User theNewUser){
+    public String login(User theNewUser) {
         User theActualUser = this.theUserRepository.getUserByEmail(theNewUser.getEmail());
-        if(theActualUser != null &&
+        if (theActualUser != null &&
                 theActualUser.getPassword().equals(
                         theEncryptionService.convertSHA256(theNewUser.getPassword()))) {
             return theJwtService.generateToken(theActualUser);
@@ -46,7 +42,7 @@ public class SecurityService {
         return null;
     }
 
-    public User getUserByEmail(String email){
+    public User getUserByEmail(String email) {
         return this.theUserRepository.getUserByEmail(email);
     }
 
@@ -204,7 +200,7 @@ public class SecurityService {
             theSessionRepository.save(session);
         }
     }
-<<<<<<< Updated upstream
+
     public String register(User theNewUser) {
         if (theNewUser == null) {
             return "Datos inválidos";
@@ -213,7 +209,6 @@ public class SecurityService {
         if (theNewUser.getName() == null || theNewUser.getName().trim().isEmpty()) {
             return "El nombre es obligatorio";
         }
-
 
 
         if (theNewUser.getEmail() == null || theNewUser.getEmail().trim().isEmpty()) {
@@ -264,6 +259,4 @@ public class SecurityService {
         );
         mailSender.send(message);
     }
-=======
->>>>>>> Stashed changes
 }
