@@ -14,20 +14,21 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Base64;
 import java.util.Map;
 import java.util.UUID;
 
 @Service
-public class GoogleAuthService {
+public class MicrosoftAuthService {
 
-    @Value("${google.client-id}")
+    @Value("${microsoft.client-id}")
     private String clientId;
 
-    @Value("${google.client-secret}")
+    @Value("${microsoft.client-secret}")
     private String clientSecret;
 
-    @Value("${google.frontend-url}")
-    private String frontendUrl;
+    @Value("${microsoft.tenant-id}")
+    private String tenantId;
 
     @Autowired
     private UserRepository theUserRepository;
@@ -41,17 +42,21 @@ public class GoogleAuthService {
     @Autowired
     private JwtService theJwtService;
 
-    // Generar URL de Google
-    public String getGoogleUrl() {
-        return "https://accounts.google.com/o/oauth2/v2/auth"
+    private final String redirectUri = "http://localhost:8080/api/public/auth/microsoft/callback";
+
+    // Generar URL de Microsoft
+    public String getMicrosoftUrl() {
+        return "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
                 + "?client_id=" + clientId
-                + "&redirect_uri=http://localhost:8080/api/public/auth/google/callback"
                 + "&response_type=code"
-                + "&scope=openid email profile";
+                + "&redirect_uri=" + redirectUri
+                + "&response_mode=query"
+                + "&scope=openid profile email User.Read"
+                + "&prompt=select_account";
     }
 
     // Intercambiar code por access token
-    public String getGoogleAccessToken(String code) {
+    public String getMicrosoftAccessToken(String code) {
         RestTemplate rest = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -60,11 +65,12 @@ public class GoogleAuthService {
         body.add("client_id", clientId);
         body.add("client_secret", clientSecret);
         body.add("code", code);
+        body.add("redirect_uri", redirectUri);
         body.add("grant_type", "authorization_code");
-        body.add("redirect_uri", "http://localhost:8080/api/public/auth/google/callback");
+        body.add("scope", "openid profile email User.Read");
 
         ResponseEntity<Map> response = rest.postForEntity(
-                "https://oauth2.googleapis.com/token",
+                "https://login.microsoftonline.com/common/oauth2/v2.0/token",
                 new HttpEntity<>(body, headers),
                 Map.class
         );
@@ -72,14 +78,14 @@ public class GoogleAuthService {
         return (String) response.getBody().get("access_token");
     }
 
-    // Obtener datos del usuario de Google
-    public Map getGoogleUser(String accessToken) {
+    // Obtener datos del usuario de Microsoft
+    public Map getMicrosoftUser(String accessToken) {
         RestTemplate rest = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + accessToken);
+        headers.setBearerAuth(accessToken);
 
         ResponseEntity<Map> response = rest.exchange(
-                "https://www.googleapis.com/oauth2/v3/userinfo",
+                "https://graph.microsoft.com/v1.0/me",
                 HttpMethod.GET,
                 new HttpEntity<>(headers),
                 Map.class
@@ -88,19 +94,49 @@ public class GoogleAuthService {
         return response.getBody();
     }
 
+    // Obtener foto del usuario de Microsoft
+    public String getMicrosoftPhoto(String accessToken) {
+        try {
+            RestTemplate rest = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(accessToken);
+
+            ResponseEntity<byte[]> response = rest.exchange(
+                    "https://graph.microsoft.com/v1.0/me/photo/$value",
+                    HttpMethod.GET,
+                    new HttpEntity<>(headers),
+                    byte[].class
+            );
+
+            if (response.getBody() != null) {
+                String base64 = Base64.getEncoder().encodeToString(response.getBody());
+                return "data:image/jpeg;base64," + base64;
+            }
+        } catch (Exception e) {
+            System.out.println("El usuario no tiene foto en Microsoft");
+        }
+
+        return null;
+    }
+
     // Procesar usuario
-    public String processGoogleUser(Map googleUser) {
-        String email = (String) googleUser.get("email");
-        String name = (String) googleUser.get("name");
-        String photoUrl = (String) googleUser.get("picture");
-        String photo = getGooglePhoto(photoUrl);
+    public String processMicrosoftUser(Map microsoftUser, String accessToken) {
+        String email = (String) microsoftUser.get("mail");
+        if (email == null || email.isEmpty()) {
+            email = (String) microsoftUser.get("userPrincipalName");
+        }
 
+        String name = (String) microsoftUser.get("displayName");
+        if (name == null || name.isEmpty()) {
+            name = email;
+        }
 
+        String photo = getMicrosoftPhoto(accessToken);
 
         return createOrLinkUser(email, name, photo);
     }
 
-    // Crear o vincular usuario
+    // creación o actualización del usuario
     public String createOrLinkUser(String email, String name, String photo) {
         User user = theUserRepository.getUserByEmail(email);
 
@@ -117,7 +153,6 @@ public class GoogleAuthService {
             profile.setUser(user);
             theProfileRepository.save(profile);
         } else {
-
             Profile profile = theProfileRepository.findByUser(user).orElse(null);
 
             if (profile == null) {
@@ -133,31 +168,5 @@ public class GoogleAuthService {
         }
 
         return theJwtService.generateToken(user);
-    }
-
-    public String getGooglePhoto(String photoUrl) {
-        try {
-            if (photoUrl == null || photoUrl.isEmpty()) {
-                return null;
-            }
-
-            RestTemplate rest = new RestTemplate();
-
-            ResponseEntity<byte[]> response = rest.exchange(
-                    photoUrl,
-                    HttpMethod.GET,
-                    null,
-                    byte[].class
-            );
-
-            if (response.getBody() != null) {
-                String base64 = java.util.Base64.getEncoder().encodeToString(response.getBody());
-                return "data:image/jpeg;base64," + base64;
-            }
-        } catch (Exception e) {
-            System.out.println("No fue posible obtener la foto de Google");
-        }
-
-        return null;
     }
 }

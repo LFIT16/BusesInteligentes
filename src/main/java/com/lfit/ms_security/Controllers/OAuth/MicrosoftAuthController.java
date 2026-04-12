@@ -1,6 +1,6 @@
 package com.lfit.ms_security.Controllers.OAuth;
 
-import com.lfit.ms_security.Services.OAuth.GoogleAuthService;
+import com.lfit.ms_security.Services.OAuth.MicrosoftAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -10,34 +10,35 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/public/auth/google")
+@RequestMapping("/api/public/auth/microsoft")
 @CrossOrigin(origins = "http://localhost:4200")
-public class GoogleAuthController {
+public class MicrosoftAuthController {
 
     @Autowired
-    private GoogleAuthService theGoogleAuthService;
+    private MicrosoftAuthService theMicrosoftAuthService;
 
-    @Value("${google.frontend-url}")
+    @Value("${app.frontend-url}")
     private String frontendUrl;
 
     @GetMapping("/url")
-    public Map<String, String> getGoogleUrl() {
-        return Map.of("url", theGoogleAuthService.getGoogleUrl());
+    public Map<String, String> getMicrosoftUrl() {
+        return Map.of("url", theMicrosoftAuthService.getMicrosoftUrl());
     }
 
     @GetMapping("/callback")
     public ResponseEntity<?> callback(@RequestParam String code) {
         try {
-            String accessToken = theGoogleAuthService.getGoogleAccessToken(code);
-            Map googleUser = theGoogleAuthService.getGoogleUser(accessToken);
-            String token = theGoogleAuthService.processGoogleUser(googleUser);
+            String accessToken = theMicrosoftAuthService.getMicrosoftAccessToken(code);
+            Map microsoftUser = theMicrosoftAuthService.getMicrosoftUser(accessToken);
+            String result = theMicrosoftAuthService.processMicrosoftUser(microsoftUser, accessToken);;
 
             return ResponseEntity
                     .status(HttpStatus.FOUND)
-                    .header("Location", frontendUrl + "/#/auth/google/success?token=" + token)
+                    .header("Location", frontendUrl + "/#/auth/microsoft/success?token=" + result)
                     .build();
+
         } catch (Exception e) {
-            System.err.println("Error en callback de Google: " + e.getMessage());
+            System.err.println("Error en callback Microsoft: " + e.getMessage());
             return ResponseEntity
                     .status(HttpStatus.FOUND)
                     .header("Location", frontendUrl + "/#/login")
