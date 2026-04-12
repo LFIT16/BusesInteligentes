@@ -10,7 +10,6 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
@@ -30,11 +29,11 @@ public class PasswordResetService {
     @Autowired
     private EncryptionService theEncryptionService;
 
-    @Value("${recaptcha.secret.v3}")
-    private String recaptchaSecretV3;
+    @Autowired
+    private RecaptchaService recaptchaService;
 
-    @Value("${recaptcha.verify-url}")
-    private String recaptchaVerifyUrl;
+
+
 
     @Value("${app.frontend-url}")
     private String frontendUrl;
@@ -42,23 +41,13 @@ public class PasswordResetService {
     @Value("${spring.mail.username}")
     private String mailFrom;
 
-    // Verificar reCAPTCHA v3
-    public boolean verifyRecaptchaV3(String token) {
-        RestTemplate rest = new RestTemplate();
-        String url = recaptchaVerifyUrl
-                + "?secret=" + recaptchaSecretV3
-                + "&response=" + token;
-        Map response = rest.postForObject(url, null, Map.class);
-        if (response == null) return false;
-        boolean success = (Boolean) response.get("success");
-        // v3 retorna una puntuación — 0.5 o más es humano
-        Double score = (Double) response.get("score");
-        return success && score != null && score >= 0.5f;
-    }
+
 
     // Solicitar recuperación de contraseña
     public void requestPasswordReset(String email) {
         User user = theUserRepository.getUserByEmail(email);
+
+
 
         // Si no existe simplemente no hace nada
         // El mensaje genérico se envía desde el controlador
@@ -106,4 +95,5 @@ public class PasswordResetService {
 
         return true;
     }
+
 }

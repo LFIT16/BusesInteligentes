@@ -1,6 +1,7 @@
 package com.lfit.ms_security.Controllers;
 
 import com.lfit.ms_security.Models.User;
+import com.lfit.ms_security.Services.RecaptchaService;
 import com.lfit.ms_security.Services.SecurityService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +18,18 @@ public class SecurityController {
     @Autowired
     private SecurityService theSecurityService;
 
-    // LOGIN
+    @Autowired
+    private RecaptchaService recaptchaService;
+
     @PostMapping("login")
     public HashMap<String, Object> login(@RequestBody User user,
+                                         @RequestParam String captchaToken,
                                          HttpServletResponse response) throws IOException {
+
+        if (!recaptchaService.verifyRecaptchaV3(captchaToken)) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "reCAPTCHA inválido.");
+            return null;
+        }
 
         HashMap<String, Object> result = theSecurityService.startTwoFactorLogin(user);
 
