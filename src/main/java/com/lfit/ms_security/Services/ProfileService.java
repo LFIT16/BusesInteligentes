@@ -1,6 +1,7 @@
 package com.lfit.ms_security.Services;
 
 import com.lfit.ms_security.Models.Profile;
+import com.lfit.ms_security.Models.User;
 import com.lfit.ms_security.Repositories.ProfileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,10 @@ public class ProfileService {
 
     public List<Profile> find(){
         return this.theProfileRepository.findAll();
+    }
+
+    public Profile findByUserId(String userId){
+        return this.theProfileRepository.findByUser_Id(userId).orElse(null);
     }
 
     public Profile findById(String id){

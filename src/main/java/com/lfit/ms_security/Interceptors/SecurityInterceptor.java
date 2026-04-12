@@ -29,6 +29,11 @@ public class SecurityInterceptor implements HandlerInterceptor {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
             return false;
         }
+        String uri = request.getRequestURI();
+        String method = request.getMethod();
+        if ("/api/profiles/me".equals(uri) && "GET".equalsIgnoreCase(method)) {
+            return true;
+        }
 
         boolean success = this.validatorService.validationRolePermission(
                 request,

@@ -42,6 +42,7 @@ public class JwtService {
         claims.put("id", theUser.getId());
         claims.put("name", theUser.getName());
         claims.put("email", theUser.getEmail());
+        claims.put("githubUsername", theUser.getGithubUsername());
 
         return Jwts.builder()
                 .setClaims(claims)
@@ -80,6 +81,7 @@ public class JwtService {
             user.setId((String) claims.get("id"));
             user.setName((String) claims.get("name"));
             user.setEmail((String) claims.get("email"));
+            user.setGithubUsername((String) claims.get("githubUsername"));
             return user;
         } catch (Exception e) {
             return null;

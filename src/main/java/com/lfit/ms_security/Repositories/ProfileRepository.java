@@ -8,5 +8,6 @@ import java.util.Optional;
 
 public interface ProfileRepository extends MongoRepository<Profile, String> {
     Optional<Profile> findByUser(User user);
+    Optional<Profile> findByUser_Id(String userId);
 
 }
