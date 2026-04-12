@@ -37,7 +37,7 @@ public class SecurityInterceptor implements HandlerInterceptor {
         );
 
         if (!success) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN); // 403
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); //401
             return false;
         }
 

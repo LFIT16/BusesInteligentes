@@ -45,7 +45,7 @@ public class GoogleAuthService {
     public String getGoogleUrl() {
         return "https://accounts.google.com/o/oauth2/v2/auth"
                 + "?client_id=" + clientId
-                + "&redirect_uri=http://localhost:8080/auth/google/callback"
+                + "&redirect_uri=http://localhost:8080/api/public/auth/google/callback"
                 + "&response_type=code"
                 + "&scope=openid email profile";
     }
@@ -61,7 +61,7 @@ public class GoogleAuthService {
         body.add("client_secret", clientSecret);
         body.add("code", code);
         body.add("grant_type", "authorization_code");
-        body.add("redirect_uri", "http://localhost:8080/auth/google/callback");
+        body.add("redirect_uri", "http://localhost:8080/api/public/auth/google/callback");
 
         ResponseEntity<Map> response = rest.postForEntity(
                 "https://oauth2.googleapis.com/token",

@@ -1,33 +1,40 @@
 package com.lfit.ms_security.Services;
+import java.util.Date;
+import java.util.HashMap;
+
 import com.lfit.ms_security.Models.Session;
 import com.lfit.ms_security.Models.User;
 import com.lfit.ms_security.Repositories.SessionRepository;
 import com.lfit.ms_security.Repositories.UserRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.HashMap;
-
 
 @Service
 public class SecurityService {
     @Autowired
+    private JavaMailSender mailSender;
+    @Autowired
     private UserRepository theUserRepository;
+
     @Autowired
     private SessionRepository theSessionRepository;
+
     @Autowired
     private EncryptionService theEncryptionService;
+
     @Autowired
     private JwtService theJwtService;
-    @Autowired
-    private JavaMailSender mailSender;
 
-    public String login(User theNewUser){
+    @Autowired
+    private EmailService theEmailService;
+
+    public String login(User theNewUser) {
         User theActualUser = this.theUserRepository.getUserByEmail(theNewUser.getEmail());
-        if(theActualUser != null &&
+        if (theActualUser != null &&
                 theActualUser.getPassword().equals(
                         theEncryptionService.convertSHA256(theNewUser.getPassword()))) {
             return theJwtService.generateToken(theActualUser);
@@ -35,16 +42,10 @@ public class SecurityService {
         return null;
     }
 
-    public User getUserByEmail(String email){
+    public User getUserByEmail(String email) {
         return this.theUserRepository.getUserByEmail(email);
     }
-    /*
-    public boolean permissionsValidation(final HttpServletRequest request,
-                                         @RequestBody Permission thePermission) {
-        boolean success=this.theValidatorsService.validationRolePermission(request,thePermission.getUrl(),thePermission.getMethod());
-        return success;
-    }
-    */
+
     private String generate2FACode() {
         int number = (int) (Math.random() * 900000) + 100000;
         return String.valueOf(number);
@@ -61,17 +62,6 @@ public class SecurityService {
                 : local.charAt(0) + "***";
 
         return localMasked + "@***.com";
-    }
-
-    private void sendTwoFactorCode(String email, String code) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(email);
-        message.setSubject("Código de verificación 2FA");
-        message.setText(
-                "Su código de verificación es: " + code + "\n\n" +
-                        "Este código expira en 5 minutos."
-        );
-        mailSender.send(message);
     }
 
     public HashMap<String, Object> startTwoFactorLogin(User loginUser) {
@@ -93,7 +83,7 @@ public class SecurityService {
 
         theSessionRepository.save(session);
 
-        sendTwoFactorCode(user.getEmail(), code);
+        this.theEmailService.sendTwoFactorCodeEmail(user.getEmail(), code);
 
         response.put("requires2fa", true);
         response.put("challengeId", session.getId());
@@ -103,6 +93,7 @@ public class SecurityService {
 
         return response;
     }
+
     public HashMap<String, Object> verifyTwoFactorCode(String challengeId, String code) {
         HashMap<String, Object> response = new HashMap<>();
 
@@ -160,6 +151,7 @@ public class SecurityService {
 
         return response;
     }
+
     public HashMap<String, Object> resendTwoFactorCode(String challengeId) {
         HashMap<String, Object> response = new HashMap<>();
 
@@ -189,7 +181,7 @@ public class SecurityService {
 
         theSessionRepository.save(session);
 
-        sendTwoFactorCode(session.getUser().getEmail(), newCode);
+        this.theEmailService.sendTwoFactorCodeEmail(session.getUser().getEmail(), newCode);
 
         response.put("success", true);
         response.put("expiresInSeconds", 300);
@@ -197,6 +189,7 @@ public class SecurityService {
 
         return response;
     }
+
     public void cancelTwoFactorSession(String challengeId) {
         Session session = theSessionRepository.findById(challengeId).orElse(null);
 
@@ -208,8 +201,62 @@ public class SecurityService {
         }
     }
 
+    public String register(User theNewUser) {
+        if (theNewUser == null) {
+            return "Datos inválidos";
+        }
+
+        if (theNewUser.getName() == null || theNewUser.getName().trim().isEmpty()) {
+            return "El nombre es obligatorio";
+        }
+
+
+        if (theNewUser.getEmail() == null || theNewUser.getEmail().trim().isEmpty()) {
+            return "El email es obligatorio";
+        }
+
+        if (theNewUser.getPassword() == null || theNewUser.getPassword().trim().isEmpty()) {
+            return "La contraseña es obligatoria";
+        }
+
+        if (theNewUser.getConfirmPassword() == null || theNewUser.getConfirmPassword().trim().isEmpty()) {
+            return "La confirmación de contraseña es obligatoria";
+        }
+
+        if (!theNewUser.getPassword().equals(theNewUser.getConfirmPassword())) {
+            return "Las contraseñas no coinciden";
+        }
+
+        String email = theNewUser.getEmail().trim().toLowerCase();
+        User existingUser = this.theUserRepository.getUserByEmail(email);
+
+        if (existingUser != null) {
+            return "El email ya está registrado";
+        }
+
+        theNewUser.setEmail(email);
+        theNewUser.setName(theNewUser.getName().trim());
+
+
+        String encryptedPassword = theEncryptionService.convertSHA256(theNewUser.getPassword());
+        theNewUser.setPassword(encryptedPassword);
+
+        this.theUserRepository.save(theNewUser);
+
+        sendRegisterConfirmationEmail(theNewUser.getEmail(), theNewUser.getName());
+
+        return "Usuario registrado correctamente";
+    }
+
+    private void sendRegisterConfirmationEmail(String email, String name) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(email);
+        message.setSubject("Confirmación de registro");
+        message.setText(
+                "Hola " + name + ",\n\n" +
+                        "Tu cuenta fue creada correctamente.\n\n" +
+                        "Ya puedes iniciar sesión en la plataforma."
+        );
+        mailSender.send(message);
+    }
 }
-
-
-
-
