@@ -40,8 +40,20 @@ public class UserController {
     }
 
     @PostMapping
-    public User create(@Valid @RequestBody User newUser) {
-        return this.theUserService.create(newUser);
+    public ResponseEntity<?> create(@Valid @RequestBody User newUser) {
+        try {
+            User created = this.theUserService.create(newUser);
+            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        } catch (RuntimeException e) {
+            if ("EMAIL_ALREADY_EXISTS".equals(e.getMessage())) {
+                return ResponseEntity
+                        .status(HttpStatus.CONFLICT)
+                        .body(Map.of("message", "El correo ya está registrado"));
+            }
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Error interno del servidor"));
+        }
     }
 
     @PutMapping("{id}")

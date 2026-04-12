@@ -37,8 +37,13 @@ public class UserService {
     }
 
     public User create(User newUser) {
-        //antes de crear un nuevo usuario validar que no exista
-        newUser.setPassword(theEncryptionService.convertSHA256((newUser.getPassword())));
+        // Validar que el email no esté ya registrado
+        User existingUser = this.theUserRepository.getUserByEmail(newUser.getEmail());
+        if (existingUser != null) {
+            throw new RuntimeException("EMAIL_ALREADY_EXISTS");
+        }
+
+        newUser.setPassword(theEncryptionService.convertSHA256(newUser.getPassword()));
         return this.theUserRepository.save(newUser);
     }
 
