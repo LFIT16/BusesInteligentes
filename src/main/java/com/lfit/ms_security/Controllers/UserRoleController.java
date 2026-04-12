@@ -1,64 +1,77 @@
 package com.lfit.ms_security.Controllers;
 
-import com.lfit.ms_security.Models.UserRole;
 import com.lfit.ms_security.Services.UserRoleService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-@CrossOrigin
 @RestController
 @RequestMapping("/api/user-role")
+@CrossOrigin
 public class UserRoleController {
 
     @Autowired
     private UserRoleService theUserRoleService;
 
-    @GetMapping("")
-    public List<UserRole> find() {
-        return this.theUserRoleService.find();
+    @GetMapping("/user")
+    public ResponseEntity<List<HashMap<String, Object>>> findGroupedByUser() {
+        return ResponseEntity.ok(this.theUserRoleService.findGroupedByUser());
     }
 
-    @GetMapping("{id}")
-    public UserRole findById(@PathVariable String id) {
-        return this.theUserRoleService.findById(id);
-    }
+    @GetMapping("/user/{id}")
+    public ResponseEntity<HashMap<String, Object>> findGroupedUserById(@PathVariable("id") String userId) {
+        HashMap<String, Object> result = this.theUserRoleService.findGroupedUserById(userId);
 
-    @PostMapping("user/{userId}/role/{roleId}")
-    public ResponseEntity<Map<String, String>> addUserRole(
-            @PathVariable String userId,
-            @PathVariable String roleId) {
-
-        boolean response = this.theUserRoleService.addUserRole(userId, roleId);
-        if (response) {
-            return ResponseEntity.ok(Map.of("message", "Success"));
-        } else {
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("message", "User or Role not found"));
+        if (result == null) {
+            return ResponseEntity.notFound().build();
         }
+
+        return ResponseEntity.ok(result);
     }
 
-    @PutMapping("{id}")
-    public UserRole update(@PathVariable String id, @RequestBody UserRole newUserRole) {
-        return this.theUserRoleService.update(id, newUserRole);
-    }
+    @PostMapping("/user/{id}")
+    public ResponseEntity<HashMap<String, Object>> createGrouped(
+            @PathVariable("id") String userId,
+            @RequestBody HashMap<String, Object> body
+    ) {
+        List<String> roleIds = (List<String>) body.get("roleIds");
 
-    @DeleteMapping("{userRoleId}")
-    public ResponseEntity<Map<String, String>> removeUserRole(
-            @PathVariable String userRoleId) {
+        HashMap<String, Object> result = this.theUserRoleService.createGrouped(userId, roleIds);
 
-        boolean response = this.theUserRoleService.removeUserRole(userRoleId);
-        if (response) {
-            return ResponseEntity.ok(Map.of("message", "Success"));
-        } else {
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("message", "UserRole not found"));
+        if (result == null) {
+            return ResponseEntity.badRequest().build();
         }
+
+        return ResponseEntity.ok(result);
+    }
+
+    @PutMapping("/user/{id}")
+    public ResponseEntity<HashMap<String, Object>> updateGrouped(
+            @PathVariable("id") String userId,
+            @RequestBody HashMap<String, Object> body
+    ) {
+        List<String> roleIds = (List<String>) body.get("roleIds");
+
+        HashMap<String, Object> result = this.theUserRoleService.updateGrouped(userId, roleIds);
+
+        if (result == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.ok(result);
+    }
+
+    @DeleteMapping("/user/{id}")
+    public ResponseEntity<?> deleteGrouped(@PathVariable("id") String userId) {
+        boolean deleted = this.theUserRoleService.deleteGrouped(userId);
+
+        if (!deleted) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok().build();
     }
 }

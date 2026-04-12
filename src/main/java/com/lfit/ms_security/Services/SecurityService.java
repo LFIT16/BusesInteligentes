@@ -1,10 +1,16 @@
 package com.lfit.ms_security.Services;
+<<<<<<< Updated upstream
 import java.util.Date;
 import java.util.HashMap;
 
+=======
+
+import com.lfit.ms_security.Models.Session;
+import com.lfit.ms_security.Models.User;
+import com.lfit.ms_security.Repositories.SessionRepository;
+import com.lfit.ms_security.Repositories.UserRepository;
+>>>>>>> Stashed changes
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import com.lfit.ms_security.Models.Session;
@@ -12,19 +18,23 @@ import com.lfit.ms_security.Models.User;
 import com.lfit.ms_security.Repositories.SessionRepository;
 import com.lfit.ms_security.Repositories.UserRepository;
 
-
 @Service
 public class SecurityService {
+
     @Autowired
     private UserRepository theUserRepository;
+
     @Autowired
     private SessionRepository theSessionRepository;
+
     @Autowired
     private EncryptionService theEncryptionService;
+
     @Autowired
     private JwtService theJwtService;
+
     @Autowired
-    private JavaMailSender mailSender;
+    private EmailService theEmailService;
 
     public String login(User theNewUser){
         User theActualUser = this.theUserRepository.getUserByEmail(theNewUser.getEmail());
@@ -39,13 +49,7 @@ public class SecurityService {
     public User getUserByEmail(String email){
         return this.theUserRepository.getUserByEmail(email);
     }
-    /*
-    public boolean permissionsValidation(final HttpServletRequest request,
-                                         @RequestBody Permission thePermission) {
-        boolean success=this.theValidatorsService.validationRolePermission(request,thePermission.getUrl(),thePermission.getMethod());
-        return success;
-    }
-    */
+
     private String generate2FACode() {
         int number = (int) (Math.random() * 900000) + 100000;
         return String.valueOf(number);
@@ -62,17 +66,6 @@ public class SecurityService {
                 : local.charAt(0) + "***";
 
         return localMasked + "@***.com";
-    }
-
-    private void sendTwoFactorCode(String email, String code) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(email);
-        message.setSubject("Código de verificación 2FA");
-        message.setText(
-                "Su código de verificación es: " + code + "\n\n" +
-                        "Este código expira en 5 minutos."
-        );
-        mailSender.send(message);
     }
 
     public HashMap<String, Object> startTwoFactorLogin(User loginUser) {
@@ -94,7 +87,7 @@ public class SecurityService {
 
         theSessionRepository.save(session);
 
-        sendTwoFactorCode(user.getEmail(), code);
+        this.theEmailService.sendTwoFactorCodeEmail(user.getEmail(), code);
 
         response.put("requires2fa", true);
         response.put("challengeId", session.getId());
@@ -104,6 +97,7 @@ public class SecurityService {
 
         return response;
     }
+
     public HashMap<String, Object> verifyTwoFactorCode(String challengeId, String code) {
         HashMap<String, Object> response = new HashMap<>();
 
@@ -161,6 +155,7 @@ public class SecurityService {
 
         return response;
     }
+
     public HashMap<String, Object> resendTwoFactorCode(String challengeId) {
         HashMap<String, Object> response = new HashMap<>();
 
@@ -190,7 +185,7 @@ public class SecurityService {
 
         theSessionRepository.save(session);
 
-        sendTwoFactorCode(session.getUser().getEmail(), newCode);
+        this.theEmailService.sendTwoFactorCodeEmail(session.getUser().getEmail(), newCode);
 
         response.put("success", true);
         response.put("expiresInSeconds", 300);
@@ -198,6 +193,7 @@ public class SecurityService {
 
         return response;
     }
+
     public void cancelTwoFactorSession(String challengeId) {
         Session session = theSessionRepository.findById(challengeId).orElse(null);
 
@@ -208,6 +204,7 @@ public class SecurityService {
             theSessionRepository.save(session);
         }
     }
+<<<<<<< Updated upstream
     public String register(User theNewUser) {
         if (theNewUser == null) {
             return "Datos inválidos";
@@ -267,4 +264,6 @@ public class SecurityService {
         );
         mailSender.send(message);
     }
+=======
+>>>>>>> Stashed changes
 }

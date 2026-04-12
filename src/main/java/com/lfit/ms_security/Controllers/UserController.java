@@ -34,6 +34,11 @@ public class UserController {
         return this.theUserService.find();
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<List<User>> search(@RequestParam String query) {
+        return ResponseEntity.ok(this.theUserService.search(query));
+    }
+
     @GetMapping("{id}")
     public User findById(@PathVariable String id) {
         return this.theUserService.findById(id);
