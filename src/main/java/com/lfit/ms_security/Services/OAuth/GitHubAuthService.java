@@ -44,7 +44,8 @@ public class GitHubAuthService {
     public String getGithubUrl() {
         return "https://github.com/login/oauth/authorize"
                 + "?client_id=" + clientId
-                + "&scope=user:email read:user";
+                + "&scope=user:email read:user"
+                + "&prompt=select_account";
     }
 
     // Intercambiar code por access token
