@@ -36,6 +36,13 @@ public class UserService {
         return theUser;
     }
 
+    public List<User> search(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            return this.theUserRepository.findAll();
+        }
+        return this.theUserRepository.searchByNameOrEmail(query.trim());
+    }
+
     public User create(User newUser) {
         //antes de crear un nuevo usuario validar que no exista
         newUser.setPassword(theEncryptionService.convertSHA256((newUser.getPassword())));

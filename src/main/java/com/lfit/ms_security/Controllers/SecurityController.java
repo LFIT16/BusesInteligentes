@@ -1,9 +1,11 @@
 package com.lfit.ms_security.Controllers;
 
 import com.lfit.ms_security.Models.User;
+
 import com.lfit.ms_security.Services.SecurityService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -60,4 +62,24 @@ public class SecurityController {
     public void cancel2FA(@RequestBody HashMap<String, String> body) {
         this.theSecurityService.cancelTwoFactorSession(body.get("challengeId"));
     }
+    @PostMapping("register")
+    public HashMap<String, Object> register(@RequestBody User theNewUser,
+                                            final HttpServletResponse response) throws IOException {
+        HashMap<String, Object> theResponse = new HashMap<>();
+
+        String result = this.theSecurityService.register(theNewUser);
+
+        if ("Usuario registrado correctamente".equals(result)) {
+            response.setStatus(HttpServletResponse.SC_CREATED);
+            theResponse.put("success", true);
+            theResponse.put("message", result);
+            return theResponse;
+        }
+
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        theResponse.put("success", false);
+        theResponse.put("message", result);
+        return theResponse;
+    }
+
 }
