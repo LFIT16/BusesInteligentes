@@ -22,7 +22,6 @@ public class SecurityInterceptor implements HandlerInterceptor {
             response.setStatus(HttpServletResponse.SC_OK);
             return true;
         }
-
         boolean success=this.validatorService.validationRolePermission(
                 request,
                 request.getRequestURI(),
@@ -48,5 +47,4 @@ public class SecurityInterceptor implements HandlerInterceptor {
                                 Exception ex) throws Exception {
         // Lógica a ejecutar después de completar la solicitud, incluso después de la renderización de la vista
     }
-
 }
