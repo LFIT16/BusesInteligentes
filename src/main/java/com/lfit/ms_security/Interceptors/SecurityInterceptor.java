@@ -16,13 +16,26 @@ public class SecurityInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request,
                              HttpServletResponse response,
-                             Object handler)
-            throws Exception {
+                             Object handler) throws Exception {
+
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             response.setStatus(HttpServletResponse.SC_OK);
             return true;
         }
-        boolean success=this.validatorService.validationRolePermission(
+
+        var theUser = this.validatorService.getUser(request);
+
+        if (theUser == null) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
+            return false;
+        }
+        String uri = request.getRequestURI();
+        String method = request.getMethod();
+        if ("/api/profiles/me".equals(uri) && "GET".equalsIgnoreCase(method)) {
+            return true;
+        }
+
+        boolean success = this.validatorService.validationRolePermission(
                 request,
                 request.getRequestURI(),
                 request.getMethod()
@@ -47,4 +60,5 @@ public class SecurityInterceptor implements HandlerInterceptor {
                                 Exception ex) throws Exception {
         // Lógica a ejecutar después de completar la solicitud, incluso después de la renderización de la vista
     }
+
 }
