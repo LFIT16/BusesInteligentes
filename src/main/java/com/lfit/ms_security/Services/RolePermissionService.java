@@ -27,7 +27,6 @@ public class RolePermissionService {
         return this.theRolePermissionRepository.getPermissionsByRole(roleId);
     }
 
-
     public boolean addRolePermission(String roleId, String permissionId) {
         Role role = this.theRoleRepository.findById(roleId).orElse(null);
         Permission permission = this.thePermissionRepository.findById(permissionId).orElse(null);
