@@ -1,11 +1,13 @@
 package com.lfit.ms_security.Controllers;
 
+import com.lfit.ms_security.Models.RolePermission;
 import com.lfit.ms_security.Services.RolePermissionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @CrossOrigin
@@ -15,6 +17,11 @@ public class RolePermissionController {
 
     @Autowired
     private RolePermissionService theRolePermissionService;
+    @GetMapping("/role/{roleId}")
+    public ResponseEntity<List<RolePermission>> getByRole(@PathVariable String roleId) {
+        List<RolePermission> response = this.theRolePermissionService.getByRole(roleId);
+        return ResponseEntity.ok(response);
+    }
 
     @PostMapping("role/{roleId}/permission/{permissionId}")
     public ResponseEntity<Map<String, String>> addRolePermission(

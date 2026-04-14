@@ -6,10 +6,11 @@ import com.lfit.ms_security.Repositories.SessionRepository;
 import com.lfit.ms_security.Repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
@@ -22,6 +23,9 @@ public class PasswordResetService {
 
     @Autowired
     private SessionRepository theSessionRepository;
+
+    @Autowired
+    private JavaMailSender mailSender;
 
     @Autowired
     private EncryptionService theEncryptionService;
@@ -63,11 +67,14 @@ public class PasswordResetService {
     public void requestPasswordReset(String email) {
         User user = theUserRepository.getUserByEmail(email);
 
+
         if (user == null) return;
 
+        // Generar token único válido por 30 minutos
         String token = UUID.randomUUID().toString();
         Date expiration = new Date(System.currentTimeMillis() + 30 * 60 * 1000);
 
+        // Guardar en Session con type PASSWORD_RESET
         Session session = new Session(token, expiration, null);
         session.setUser(user);
         session.setType("PASSWORD_RESET");
@@ -77,6 +84,7 @@ public class PasswordResetService {
         this.theEmailService.sendPasswordResetEmail(email, resetLink);
     }
 
+    // Resetear contraseña con token
     public boolean resetPassword(String token, String newPassword) {
         Session session = theSessionRepository.findByToken(token).orElse(null);
 

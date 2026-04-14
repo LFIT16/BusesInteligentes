@@ -1,9 +1,11 @@
 package com.lfit.ms_security.Controllers;
 
 import com.lfit.ms_security.Services.PasswordResetService;
+import com.lfit.ms_security.Services.RecaptchaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 
 @RestController
 @RequestMapping("/api/public/auth/password")
@@ -13,24 +15,21 @@ public class PasswordResetController {
     @Autowired
     private PasswordResetService thePasswordResetService;
 
-    // Solicitar recuperación
+    @Autowired
+    private RecaptchaService recaptchaService; // ← añade esto
+
     @PostMapping("/forgot")
     public ResponseEntity<?> forgotPassword(
             @RequestParam String email,
             @RequestParam String recaptchaTokenV3
     ) {
-        // Verificar reCAPTCHA
-        if (!thePasswordResetService.verifyRecaptchaV3(recaptchaTokenV3)) {
+        if (!recaptchaService.verifyRecaptchaV3(recaptchaTokenV3)) { // ← cambia esto
             return ResponseEntity.badRequest().body("reCAPTCHA inválido.");
         }
-
         thePasswordResetService.requestPasswordReset(email);
-
-        // Mensaje genérico por seguridad
         return ResponseEntity.ok("Si el email existe, recibirá instrucciones de recuperación.");
     }
 
-    // Resetear contraseña
     @PostMapping("/reset")
     public ResponseEntity<?> resetPassword(
             @RequestParam String token,

@@ -2,15 +2,15 @@ package com.lfit.ms_security.Services;
 import java.util.Date;
 import java.util.HashMap;
 
-import com.lfit.ms_security.Models.Session;
-import com.lfit.ms_security.Models.User;
-import com.lfit.ms_security.Repositories.SessionRepository;
-import com.lfit.ms_security.Repositories.UserRepository;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+
+import com.lfit.ms_security.Models.Session;
+import com.lfit.ms_security.Models.User;
+import com.lfit.ms_security.Repositories.SessionRepository;
+import com.lfit.ms_security.Repositories.UserRepository;
 
 
 @Service
@@ -19,16 +19,12 @@ public class SecurityService {
     private JavaMailSender mailSender;
     @Autowired
     private UserRepository theUserRepository;
-
     @Autowired
     private SessionRepository theSessionRepository;
-
     @Autowired
     private EncryptionService theEncryptionService;
-
     @Autowired
     private JwtService theJwtService;
-
     @Autowired
     private EmailService theEmailService;
 
@@ -45,7 +41,13 @@ public class SecurityService {
     public User getUserByEmail(String email) {
         return this.theUserRepository.getUserByEmail(email);
     }
-
+    /*
+    public boolean permissionsValidation(final HttpServletRequest request,
+                                         @RequestBody Permission thePermission) {
+        boolean success=this.theValidatorsService.validationRolePermission(request,thePermission.getUrl(),thePermission.getMethod());
+        return success;
+    }
+    */
     private String generate2FACode() {
         int number = (int) (Math.random() * 900000) + 100000;
         return String.valueOf(number);
@@ -200,52 +202,36 @@ public class SecurityService {
             theSessionRepository.save(session);
         }
     }
+    public void register(User user) {
 
-    public String register(User theNewUser) {
-        if (theNewUser == null) {
-            return "Datos inválidos";
+        if (user == null) {
+            throw new RuntimeException("INVALID_DATA");
         }
 
-        if (theNewUser.getName() == null || theNewUser.getName().trim().isEmpty()) {
-            return "El nombre es obligatorio";
+        if (user.getName() == null || user.getName().trim().isEmpty()) {
+            throw new RuntimeException("NAME_REQUIRED");
         }
 
-
-        if (theNewUser.getEmail() == null || theNewUser.getEmail().trim().isEmpty()) {
-            return "El email es obligatorio";
+        if (user.getEmail() == null || user.getEmail().trim().isEmpty()) {
+            throw new RuntimeException("EMAIL_REQUIRED");
         }
 
-        if (theNewUser.getPassword() == null || theNewUser.getPassword().trim().isEmpty()) {
-            return "La contraseña es obligatoria";
+        String email = user.getEmail().trim().toLowerCase();
+
+        if (theUserRepository.getUserByEmail(email) != null) {
+            throw new RuntimeException("EMAIL_ALREADY_EXISTS");
         }
 
-        if (theNewUser.getConfirmPassword() == null || theNewUser.getConfirmPassword().trim().isEmpty()) {
-            return "La confirmación de contraseña es obligatoria";
-        }
+        user.setEmail(email);
+        user.setName(user.getName().trim());
 
-        if (!theNewUser.getPassword().equals(theNewUser.getConfirmPassword())) {
-            return "Las contraseñas no coinciden";
-        }
+        user.setPassword(
+                theEncryptionService.convertSHA256(user.getPassword())
+        );
 
-        String email = theNewUser.getEmail().trim().toLowerCase();
-        User existingUser = this.theUserRepository.getUserByEmail(email);
+        theUserRepository.save(user);
 
-        if (existingUser != null) {
-            return "El email ya está registrado";
-        }
-
-        theNewUser.setEmail(email);
-        theNewUser.setName(theNewUser.getName().trim());
-
-
-        String encryptedPassword = theEncryptionService.convertSHA256(theNewUser.getPassword());
-        theNewUser.setPassword(encryptedPassword);
-
-        this.theUserRepository.save(theNewUser);
-
-        sendRegisterConfirmationEmail(theNewUser.getEmail(), theNewUser.getName());
-
-        return "Usuario registrado correctamente";
+        sendRegisterConfirmationEmail(user.getEmail(), user.getName());
     }
 
     private void sendRegisterConfirmationEmail(String email, String name) {

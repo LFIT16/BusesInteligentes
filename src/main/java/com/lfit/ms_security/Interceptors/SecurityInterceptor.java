@@ -15,9 +15,7 @@ public class SecurityInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request,
-                             HttpServletResponse response,
-                             Object handler) throws Exception {
-
+                             HttpServletResponse response, Object handler) throws Exception {
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             response.setStatus(HttpServletResponse.SC_OK);
             return true;
@@ -60,5 +58,4 @@ public class SecurityInterceptor implements HandlerInterceptor {
                                 Exception ex) throws Exception {
         // Lógica a ejecutar después de completar la solicitud, incluso después de la renderización de la vista
     }
-
 }

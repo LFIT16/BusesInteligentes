@@ -9,6 +9,8 @@ import com.lfit.ms_security.Repositories.RolePermissionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class RolePermissionService {
 
@@ -21,26 +23,31 @@ public class RolePermissionService {
     @Autowired
     private RolePermissionRepository theRolePermissionRepository;
 
-    public boolean addRolePermission(String roleId, String permissionId){
+    public List<RolePermission> getByRole(String roleId) {
+        return this.theRolePermissionRepository.getPermissionsByRole(roleId);
+    }
+
+    public boolean addRolePermission(String roleId, String permissionId) {
         Role role = this.theRoleRepository.findById(roleId).orElse(null);
         Permission permission = this.thePermissionRepository.findById(permissionId).orElse(null);
 
-        if(role != null && permission != null){
-            RolePermission theRolePermission = new RolePermission();
-            theRolePermission.setRole(role);
-            theRolePermission.setPermission(permission);
-
-            this.theRolePermissionRepository.save(theRolePermission);
-            return true;
-        } else {
+        if (role == null || permission == null) {
             return false;
         }
+
+        RolePermission rolePermission = new RolePermission();
+        rolePermission.setRole(role);
+        rolePermission.setPermission(permission);
+
+        this.theRolePermissionRepository.save(rolePermission);
+        return true;
     }
 
-    public boolean removeRolePermission(String rolePermissionId){
-        RolePermission rolePermission = this.theRolePermissionRepository.findById(rolePermissionId).orElse(null);
+    public boolean removeRolePermission(String rolePermissionId) {
+        RolePermission rolePermission = this.theRolePermissionRepository
+                .findById(rolePermissionId).orElse(null);
 
-        if(rolePermission != null){
+        if (rolePermission != null) {
             this.theRolePermissionRepository.delete(rolePermission);
             return true;
         } else {
