@@ -35,6 +35,12 @@ public class RolePermissionService {
             return false;
         }
 
+        var existing = this.theRolePermissionRepository.getRolePermission(roleId, permissionId);
+
+        if (existing.isPresent()) {
+            return true;
+        }
+
         RolePermission rolePermission = new RolePermission();
         rolePermission.setRole(role);
         rolePermission.setPermission(permission);
