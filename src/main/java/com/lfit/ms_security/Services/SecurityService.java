@@ -2,6 +2,8 @@ package com.lfit.ms_security.Services;
 import java.util.Date;
 import java.util.HashMap;
 
+import com.lfit.ms_security.Models.Permission;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -27,6 +29,8 @@ public class SecurityService {
     private JwtService theJwtService;
     @Autowired
     private EmailService theEmailService;
+    @Autowired
+    private ValidatorsService theValidatorsService;
 
     public String login(User theNewUser) {
         User theActualUser = this.theUserRepository.getUserByEmail(theNewUser.getEmail());
@@ -41,13 +45,14 @@ public class SecurityService {
     public User getUserByEmail(String email) {
         return this.theUserRepository.getUserByEmail(email);
     }
-    /*
+
     public boolean permissionsValidation(final HttpServletRequest request,
-                                         @RequestBody Permission thePermission) {
+                                         Permission thePermission) {
         boolean success=this.theValidatorsService.validationRolePermission(request,thePermission.getUrl(),thePermission.getMethod());
         return success;
     }
-    */
+
+
     private String generate2FACode() {
         int number = (int) (Math.random() * 900000) + 100000;
         return String.valueOf(number);

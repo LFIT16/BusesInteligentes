@@ -1,8 +1,10 @@
 package com.lfit.ms_security.Controllers;
 
+import com.lfit.ms_security.Models.Permission;
 import com.lfit.ms_security.Models.User;
 import com.lfit.ms_security.Services.RecaptchaService;
 import com.lfit.ms_security.Services.SecurityService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -41,6 +43,14 @@ public class SecurityController {
 
         return result;
     }
+
+    @PostMapping("permissions-validation")
+    public boolean permissionsValidation(final HttpServletRequest request,
+                                         @RequestBody Permission thePermission) {
+        return this.theSecurityService.permissionsValidation(request,thePermission);
+    }
+
+
 
     // VERIFY 2FA
     @PostMapping("2fa/verify")
