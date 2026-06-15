@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.Map;
 
 import java.util.List;
 
@@ -62,6 +63,17 @@ public class ProfileController {
         }
 
         return ResponseEntity.ok(profile);
+    }
+
+    @GetMapping("/by-user/{userId}")
+    public ResponseEntity<Map<String, String>> getPhotoByUserId(@PathVariable String userId) {
+        Profile profile = this.theProfileService.findByUserId(userId);
+
+        if (profile == null || profile.getPhoto() == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(Map.of("photo", profile.getPhoto()));
     }
 
 }
