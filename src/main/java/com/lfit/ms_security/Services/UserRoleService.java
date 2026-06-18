@@ -199,4 +199,56 @@ public class UserRoleService {
 
         return true;
     }
+
+    public List<HashMap<String, Object>> findSupervisores() {
+        try {
+            // Buscar el rol "supervisor" por nombre (ignorando mayúsculas/minúsculas)
+            List<Role> allRoles = theRoleRepository.findAll();
+            Role supervisorRole = null;
+
+            for (Role role : allRoles) {
+                if (role.getName() != null && role.getName().equalsIgnoreCase("supervisor")) {
+                    supervisorRole = role;
+                    break;
+                }
+            }
+
+            if (supervisorRole == null) {
+                System.out.println("⚠️ Rol 'supervisor' no encontrado");
+                return new ArrayList<>();
+            }
+
+            // Obtener los UserRole que tienen ese rol
+            List<UserRole> userRoles = theUserRoleRepository.findByRole(supervisorRole.getId());
+
+            List<HashMap<String, Object>> supervisores = new ArrayList<>();
+            for (UserRole ur : userRoles) {
+                // 👈 VERIFICAR QUE USER NO SEA NULL
+                if (ur.getUser() == null) {
+                    System.out.println("⚠️ UserRole con user null encontrado, saltando...");
+                    continue;
+                }
+
+                // 👈 VERIFICAR QUE EL USER TENGA EMAIL
+                if (ur.getUser().getEmail() == null || ur.getUser().getEmail().isEmpty()) {
+                    System.out.println("⚠️ Usuario sin email: " + ur.getUser().getId());
+                    continue;
+                }
+
+                HashMap<String, Object> userData = new HashMap<>();
+                userData.put("id", ur.getUser().getId());
+                userData.put("email", ur.getUser().getEmail());
+                userData.put("name", ur.getUser().getName() != null ? ur.getUser().getName() : "Sin nombre");
+                supervisores.add(userData);
+            }
+
+            System.out.println("✅ Supervisores encontrados: " + supervisores.size());
+            return supervisores;
+
+        } catch (Exception e) {
+            System.err.println("❌ Error en findSupervisores: " + e.getMessage());
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
 }

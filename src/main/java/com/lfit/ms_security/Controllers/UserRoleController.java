@@ -74,4 +74,15 @@ public class UserRoleController {
 
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/supervisores")
+    public ResponseEntity<List<HashMap<String, Object>>> getSupervisores() {
+        List<HashMap<String, Object>> supervisores = this.theUserRoleService.findSupervisores();
+
+        if (supervisores.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(supervisores);
+    }
 }
